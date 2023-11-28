@@ -1,14 +1,26 @@
 package com.devsuperior.demo.entities;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.Table;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
 @Entity
 @Table(name = "tb_user")
-public class User {
+public class User implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,9 +35,8 @@ public class User {
     //associação - somente o usuario conhece os roles - unidirecional
     // associação Muitos para muitos
     @ManyToMany(fetch = FetchType.EAGER) //forçar carregar os roles
-    @JoinTable(name = "tb_user_role",
-    joinColumns = @JoinColumn(name = "user_id"), //PK ref tabela onde estou
-    inverseJoinColumns = @JoinColumn(name = "role_id")) //chave do outro lado
+    @JoinTable(name = "tb_user_role", joinColumns = @JoinColumn(name = "user_id"), //PK ref tabela onde estou
+            inverseJoinColumns = @JoinColumn(name = "role_id")) //chave do outro lado
     private Set<Role> roles = new HashSet<>();
 
     public User() {
@@ -101,5 +112,38 @@ public class User {
         }
         return false;
     }
-    // *****************
+
+    // **************
+    // métodos da interface
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return roles;
+    }
+
+    @Override
+    public String getUsername() {
+        return email;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
+
 }
